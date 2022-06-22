@@ -1,16 +1,18 @@
-html,
-body {
-  padding: 0;
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+@import "bootstrap-icons/font/bootstrap-icons.css";
+@import '@celo/react-celo/lib/styles.css';
+@import "bootstrap/dist/css/bootstrap.min.css";
+@import "react-toastify/dist/ReactToastify.min.css";
+
+body{
+  background-color: #212529;
+  color: whitesmoke;
+  overflow-y: scroll !important;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+.nft-card-overlay{
+  opacity: 0;
 }
-
-* {
-  box-sizing: border-box;
+.nft-card-overlay:hover{
+  background-color: #181818e6;
+  opacity: 1;
 }
