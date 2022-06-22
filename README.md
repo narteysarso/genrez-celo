@@ -1,15 +1,10 @@
-# Basic Sample Hardhat Project
+# Genrez
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+This is a celo blockchain based music sharing website that allows creator/artist to share music with their funs.
 
-Try running some of the following tasks:
+### Features
+- Create creator profile by minting an SBT (zSBT)
+- upload music to geneate a music nft (zMT)
+- play and listen to music from ipfs
 
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
-```
+
