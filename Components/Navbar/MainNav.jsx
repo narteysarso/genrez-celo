@@ -1,12 +1,11 @@
 import { useMemo } from "react";
 import Link from "next/link";
-import { Navbar, Container, Nav, Na } from "react-bootstrap";
+import { Navbar, Container, Nav, } from "react-bootstrap";
 
-import packageJSON from "../package.json";
+import packageJSON from "../../package.json";
 import { BeACreator } from "./BeACreator";
 import { ConnectWalletButton } from "./ConnectWallet";
 import { GoPremiumButton } from "./GoPremium";
-import { RegisterButton } from "./Register";
 import { Button } from "react-bootstrap";
 
 export function MainNav({ appName = packageJSON?.name, address }) {
@@ -27,7 +26,6 @@ export function MainNav({ appName = packageJSON?.name, address }) {
           <Nav className="justify-content-end flex-grow-1">
             <GoPremiumButton />
             <ConnectWalletButton />
-            <RegisterButton />
             <BeACreator />
           </Nav>
         </Navbar.Collapse>

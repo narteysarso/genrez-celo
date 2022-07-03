@@ -5,8 +5,8 @@
  * @param {string} uri metadata uri
  * @returns 
  */
-export async function mintMusic(contract, address, uri){
-   return await contract.methods.mintMusic(uri).send({from: address});
+export async function mintMusic(contract, address, uri,  title, artist, feature){
+   return await contract.methods.mintMusic(uri, title, artist, feature).send({from: address});
 }
 
 /**
@@ -15,7 +15,7 @@ export async function mintMusic(contract, address, uri){
  * @param {number} tokenId token ID
  * @returns {string} metadata uri
  */
-export async function getMusicNFT(contract, tokenId){
+export async function getMusicNFTURI(contract, tokenId){
     return await contract.methods.tokenURI(tokenId).call();
 }
 
@@ -38,6 +38,16 @@ export async function ownersTotalMusicNFT(contract, address) {
  */
 export async function getOwnerMusicNFT(contract, address, index) {
     return await contract.methods.tokenOfOwnerByIndex(address, index).call()
+}
+
+/**
+ * get token associated with address at index
+ * @param {object} contract smartcontract instance
+ * @param {Number} index token index
+ * @returns 
+ */
+export async function getMusicNFT(contract, index) {
+    return await contract.methods.tokenByIndex(index).call()
 }
 
 /**

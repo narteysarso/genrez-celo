@@ -1,3 +1,5 @@
+import { IPFS_NODE } from "../constants";
+
 //upload data to ipfs
 export const uploadToIpfs = async (file) => {
     const ipfs = await import("ipfs-http-client");
@@ -8,7 +10,7 @@ export const uploadToIpfs = async (file) => {
         const added = await client.add(file, {
             progress: (prog) => console.log(`received: ${prog}`),
         });
-        return `https://ipfs.infura.io/ipfs/${added.path}`;
+        return `${IPFS_NODE}/${added.path}`;
     } catch (error) {
         throw error;
     }
@@ -31,12 +33,22 @@ export const fetchMetaData = async (ipfsUrl) => {
     return await response.json();
 };
 
-export const makeMusic = ( musicMetadata = null) => {
+//converts music metadata to frozen object
+export const makeMusic = (musicMetadata = null) => {
     if (typeof musicMetadata !== "object") {
         return null;
     }
-    const { name, description, image, attributes } = musicMetadata;
-    const [artist, feature, language , encoding, date , copyright ,publisher , musicURI] = attributes;
+    const { name, description, image, attributes, owner } = musicMetadata;
+    const [
+        artist,
+        feature,
+        language,
+        encoding,
+        date,
+        copyright,
+        publisher,
+        musicURI,
+    ] = attributes;
 
     return Object.freeze({
         name,
@@ -49,6 +61,34 @@ export const makeMusic = ( musicMetadata = null) => {
         econding: encoding.value,
         date: date.value,
         copyright: copyright.value,
-        publisher: publisher.value
+        publisher: publisher.value,
+        owner
     });
 };
+
+//convert artist metadata to frozen object
+export const makeCreator = (artistMusicMetadata = null) => {
+    if (typeof artistMusicMetadata !== "object") {
+        return null;
+    }
+
+    const { name, description, image, owner } = artistMusicMetadata;
+
+    return Object.freeze({
+        name,
+        description,
+        image,
+        owner
+    });
+};
+
+//capitalize some a word
+export const capitalize = (word ="") => {
+    if(!word){
+        return word;
+    }
+
+    const wordArray =  word.split("")
+
+    return `${wordArray[0].toUpperCase()}${wordArray.slice(1).join("")}`;
+}

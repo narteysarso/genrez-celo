@@ -22,6 +22,10 @@ export function MainPlayer() {
         return `${currentSong?.artist} | ft: ${currentSong?.feature}  `
     }, [currentSong]);
 
+    const  volumeText = useMemo(()=> {
+        return Math.round(volume * 100)
+    }, [volume]);
+
     if (!currentSong) {
         return null;
     }
@@ -96,9 +100,9 @@ export function MainPlayer() {
                         step={1}
                         size="sm"
                         style={{ height: 0, width: "150px" }}
-                        value={volume * 100}
+                        value={volumeText}
                     ></input>
-                    <span>{volume * 100}</span>
+                    <span>{volumeText}</span>
                 </Stack>
             </Col>
         </Row>

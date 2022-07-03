@@ -12,12 +12,33 @@ contract CreatorSBT is ERC721URIStorage, ERC721Burnable, Ownable {
 
     Counters.Counter private _tokenIdCounter;
 
-    // Mapping owner address to token ID
+    // Mapping owner `address` to token ID
     mapping(address => uint) private _ownedToken;
+
+    event ProfileMinted(
+        uint indexed _tokenId,
+        address indexed _owner,
+        string artist,
+        string uri
+    );
+
+    event ProfileUpdated(
+        uint indexed _tokenId,
+        string uri,
+        string artist
+    );
+
+    event ProfileBurnt(
+        uint indexed _tokenId
+    );
 
     constructor() ERC721("Genrez Creator Soulbound Token", "zSBT") {}
 
-    function mintProfile(string memory _uri) public {
+    //mint a new SBT token for `msg.sender`
+    function mintProfile(
+        string memory _uri,
+        string memory _artist
+    ) public {
         require(msg.sender != address(0), "Invalid address");
 
         //prevent minting more than one membership nft
@@ -31,24 +52,37 @@ contract CreatorSBT is ERC721URIStorage, ERC721Burnable, Ownable {
         uint _tokenId = _tokenIdCounter.current();
         _safeMint(msg.sender, _tokenId);
         _setTokenURI(_tokenId, _uri);
+
+        emit ProfileMinted(
+            _tokenId,
+            msg.sender,
+            _artist,
+            _uri
+        );
     }
 
+    //get profile uri for `address`
     function profileURI(address _owner) external view returns (string memory) {
         uint tokenId = _ownedToken[_owner];
 
         return tokenURI(tokenId);
     }
 
-    function updateProfile(string memory _uri) public {
+    //update token for msg.sender
+    function updateProfile(string memory _uri, string memory _artist) public {
         uint _tokenId = _ownedToken[msg.sender];
+        require(_exists(_tokenId), "You have no SBT minted");
 
         _setTokenURI(_tokenId, _uri);
+        emit ProfileUpdated(_tokenId, _uri, _artist);
     }
 
+    //burn token of `msg.sender`
     function burnProfile() external {
         uint _tokenId = _ownedToken[msg.sender];
 
         burn(_tokenId);
+        emit ProfileBurnt(_tokenId);
     }
 
     function _beforeTokenTransfer(
@@ -76,6 +110,7 @@ contract CreatorSBT is ERC721URIStorage, ERC721Burnable, Ownable {
         super._burn(tokenId);
     }
 
+    //get uri for token ID
     function tokenURI(uint256 tokenId)
         public
         view
@@ -83,5 +118,10 @@ contract CreatorSBT is ERC721URIStorage, ERC721Burnable, Ownable {
         returns (string memory)
     {
         return super.tokenURI(tokenId);
+    }
+
+    //return total number of SBTs
+    function totalSupply() external view returns (uint) {
+        return _tokenIdCounter.current();
     }
 }

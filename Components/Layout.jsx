@@ -2,8 +2,8 @@ import { CeloProvider } from "@celo/react-celo";
 import { useMemo } from "react";
 
 import packageJSON from "../package.json";
-import { MainNav } from "./MainNav";
-import { CreateSBTProvider } from "../hooks/CreatorSBT";
+import { MainNav } from "./Navbar/MainNav";
+import { CreatorSBTProvider } from "../hooks/CreatorSBT";
 import { PlayerProvider } from "../hooks/Player";
 import { MainPlayer } from "./Player/Player";
 import { Container } from "react-bootstrap";
@@ -32,13 +32,13 @@ export default function Layout({ appName = packageJSON?.name, children }) {
         error: "#ef4444",
       }}
     >
-      <CreateSBTProvider>
+      <CreatorSBTProvider>
         <PlayerProvider>
         <MainNav />
         {children}
         <MainPlayer />
         </PlayerProvider>
-      </CreateSBTProvider>
+      </CreatorSBTProvider>
     </CeloProvider>
     </Container>
   );

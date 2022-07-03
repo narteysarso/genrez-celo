@@ -1,41 +1,39 @@
 import { useEffect, useState } from "react";
-import { Row, Col} from "react-bootstrap";
+import { Row, Col } from "react-bootstrap";
+
 import { useMusicNFT } from "../../hooks/MusicNFT";
 import { Empty } from "../Empty";
 import { MusicNFTCard } from "../MusicNFTCard";
 
-/**
- * display music cards
- */
-export function MusicList() {
-    //Music nft contract hook
-    const { getOwnersMusicNFTs} = useMusicNFT();
+export function SongListings() {
+    const { getMusicNFTs } = useMusicNFT();
 
     //Holds all fetched music nfts
-    const [nftCollection, setNFTCollection] = useState([]);
+    const [nftCollection, setNFTCollection] = useState(null);
 
     useEffect(() => {
         (async () => {
-            setNFTCollection(await getOwnersMusicNFTs());
+            setNFTCollection(await getMusicNFTs());
         })();
-    }, [getOwnersMusicNFTs]);
+    }, [getMusicNFTs]);
 
     return (
         <Row className="mt-5 mb-5">
             <Col xs={12}>
-                <h3>Music Lists</h3>
+                <h3>Songs</h3>
             </Col>
             <Col xs={12}>
                 <Row className="g-3 align-items-stretch">
                     {/* Render music nft cards */}
-                    {nftCollection ?
+                    {nftCollection && nftCollection?.length ? (
                         nftCollection?.map((nft, idx) => (
                             <Col key={idx} sm={6} md={3} lg={2}>
                                 <MusicNFTCard key={idx} musicMetadata={nft} />
                             </Col>
-                        )) :
-                        <Empty />
-                    }
+                        ))
+                    ) : (
+                        <Empty title="No music data" />
+                    )}
                 </Row>
             </Col>
         </Row>

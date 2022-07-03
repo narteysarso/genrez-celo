@@ -2,84 +2,125 @@ import {
     createContext,
     useEffect,
     useState,
-    useCallback,
     useContext,
+    useCallback,
 } from "react";
 import { useCelo } from "@celo/react-celo";
 
-import contractArtifat from "../../abis/CreatorSBT.json";
+import contractArtifact from "../../abis/CreatorSBT.json";
 import {
     burnProfile,
     getProfileURI,
+    getOwnerProfileURI,
     mintProfile,
     updateProfileURI,
+    totalSupply,
+    ownerOfProfile,
 } from "../../services/createSBT";
-import { fetchMetaData, uploadToIpfs } from "../../utils";
+import { fetchMetaData, makeCreator, uploadToIpfs } from "../../utils";
+import { DEFAULT_PROFILE_IMAGE, GENREZ_CELO_GRAPH } from "../../constants";
 
-const CreateSBTContext = createContext();
+const CreatorSBTContext = createContext();
 
 //CreateSBT contract context provider for handling contract data
-export function CreateSBTProvider({ children }) {
+export function CreatorSBTProvider({ children }) {
     const [creator, setCreator] = useState(null);
 
     return (
-        <CreateSBTContext.Provider
+        <CreatorSBTContext.Provider
             value={{
                 creator,
                 setCreator,
             }}
         >
             {children}
-        </CreateSBTContext.Provider>
+        </CreatorSBTContext.Provider>
     );
 }
 
 //CreateSBT contract hook for interacting with contract
-export function useCreateSBT() {
+export function useCreatorSBT() {
     const { getConnectedKit, address } = useCelo();
-    const { creator, setCreator } = useContext(CreateSBTContext);
+    const { creator, setCreator } = useContext(CreatorSBTContext);
+    const [loadingProfile, setLoadingProfile] = useState(false);
+    const [queryResults, setQueryResults] = useState([]);
+    const [queryLoading, setQueryLoading] = useState(false);
 
     //get contract instance for CreatorSBT contract
-    const getContract = async () => {
+    const getContract = useCallback(async (abi, address) => {
         const kit = await getConnectedKit();
 
         const contract = new kit.connection.web3.eth.Contract(
-            contractArtifat.abi,
-            contractArtifat.address
+            contractArtifact.abi,
+            contractArtifact.address
         );
 
         return contract;
-    };
+    },[getConnectedKit]);
 
     //get profile nft metadata for address
-    const getProfile = async () => {
+    const getOwnerProfile = async (address) => {
         const contract = await getContract();
-
-        const profileURI = await getProfileURI(contract, address);
-
-        if (!profileURI) {
-            setCreator(null);
-            return;
+        try{
+            setLoadingProfile(true);
+            const profileURI = await getOwnerProfileURI(contract, address);
+    
+            if (!profileURI) {
+                setCreator(null);
+                return;
+            }
+    
+            const profileMetadata = await fetchMetaData(profileURI);
+    
+            setCreator(profileMetadata);
+        }catch(error){
+            console.log(error);
+        }finally{
+            setLoadingProfile(false);
         }
-
-        const profileMetadata = await fetchMetaData(profileURI);
-
-        setCreator(profileMetadata);
     };
 
+    //get profile nft metadata for token
+    const getProfiles = useCallback(async () => {
+        const contract = await getContract();
+
+        let artists = [];
+
+        const numberOfProfiles = await totalSupply(contract);
+
+        for(let tokenId = 1; tokenId <= Number(numberOfProfiles); tokenId++){
+
+            const artistCall = new Promise(async (resolve) => {
+                
+                const profileURI = await getProfileURI(contract, tokenId);
+                const owner = await ownerOfProfile(contract, tokenId);
+                const profileMetadata = await fetchMetaData(profileURI);
+
+                resolve({
+                    ...profileMetadata,
+                    owner
+                })
+
+            });
+            artists.push(artistCall);
+        }
+
+        return await Promise.all(artists);
+    },[getContract]);
+
+    //load profile of address
     useEffect(() => {
       if(!address){
         return ;
       }
-        getProfile();
+        getOwnerProfile(address);
     }, [address]);
 
     //create/mint profile nft on CreatorSBT contract
     const createProfile = async ({ username, description, file }) => {
         const contract = await getContract();
 
-        let ipfsImage =
-            "https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png";
+        let ipfsImage = DEFAULT_PROFILE_IMAGE;
 
         // upload profile image to ipfs
         if (file) {
@@ -95,7 +136,8 @@ export function useCreateSBT() {
 
         const uri = await uploadToIpfs(data);
 
-        await mintProfile(contract, address, uri);
+        await mintProfile(contract, address, uri, username);
+        await getOwnerProfile(address);
     };
 
     //updating minted profile nft on CreatorSBT contract
@@ -119,21 +161,73 @@ export function useCreateSBT() {
         //upload metadata to ipfs
         const uri = await uploadToIpfs(data);
 
-        await updateProfileURI(contract, address, uri);
+        await updateProfileURI(contract, address, uri, username);
     };
 
     //burn profile nft on CreatorSBT contract
     const removeProfile = async () => {
-        const contract = await getContract();
+        const contract = await getContract(address);
 
         await burnProfile(contract, address);
     };
 
+    //query creators from narteysarso/genrez-celo graph
+    const searchCreators = async (searchKey) => {
+        try{
+            setQueryLoading(true);
+            //query data from the graph
+            const response = await fetch(GENREZ_CELO_GRAPH, {
+                method: "POST",
+                body: `
+                query{
+                        creatorSearch(text:"${searchKey}"){
+                            uri
+                            name
+                            tokenId
+                            owner
+                          }
+                    }
+                `
+            } );
+            const result = await response.json();
+            
+            if(results.data.errors){
+                throw new Error(results.data.errors);
+            }
+
+            const data = results.data;
+            const resultsLen = data.creatorSearch.length;
+            const artists = [];
+            //fetach metadata for each of the returned results from graph query
+            for(let i = 0; i < resultsLen; i++){
+                const {owner, uri} = data.creatorSearch[i];
+                const artistCall = new Promise(async (resolve) => {
+                    const profileMetadata = await fetchMetaData(uri);
+                    resolve({
+                        ...profileMetadata,
+                        owner
+                    })
+    
+                });
+                artists.push(artistCall);
+            } 
+            setQueryResults(artists);
+        }catch(error){
+            console.log(error);
+        }finally{
+            setQueryLoading(false);
+        }
+    }
     return Object.freeze({
-        getProfile,
+        getOwnerProfile,
+        getProfiles,
         removeProfile,
         createProfile,
         updateProfile,
+        searchCreators,
         creator,
+        loadingProfile,
+        queryLoading,
+        queryResults
     });
 }

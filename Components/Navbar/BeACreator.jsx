@@ -2,11 +2,11 @@ import { Button } from "react-bootstrap";
 import { useCelo } from "@celo/react-celo";
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { useCreateSBT } from "../hooks/CreatorSBT";
+import { useCreatorSBT } from "../../hooks/CreatorSBT";
 
 export function BeACreator() {
   const { address} = useCelo();
-  const {creator} = useCreateSBT();
+  const {creator} = useCreatorSBT();
   const router = useRouter();
     
 

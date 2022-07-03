@@ -9,9 +9,12 @@ import contractArtifat from "../../abis/MusicNFT.json";
 import { fetchMetaData, uploadToIpfs } from "../../utils";
 import {
     getMusicNFT,
+    getMusicNFTOwner,
+    getMusicNFTURI,
     getOwnerMusicNFT,
     mintMusic,
     ownersTotalMusicNFT,
+    totalMusicNFTs,
 } from "../../services/musicNFT";
 import { DEFAULT_MUSIC_COVER } from "../../constants";
 
@@ -123,22 +126,51 @@ export function useMusicNFT() {
 
         const metadataURI = await uploadToIpfs(data);
 
-        await mintMusic(contract, address, metadataURI);
+        await mintMusic(contract, address, metadataURI, title, artist, feature);
+        await getOwnersMusicNFTs();
+        
     },[address,getContract])
 
-    const getMusicNFTs = useCallback(async () => {
-		const contract = await getContract();
+    const getOwnersMusicNFTs = async () => {
+        const contract = await getContract();
 
         const ownersNFTLength = await ownersTotalMusicNFT(contract, address);
 
         const nfts = [];
-        for (let i = 0; i < ownersNFTLength; i++) {
+        for (let i = 0; i < Number(ownersNFTLength); i++) {
             const nft = new Promise(async (resolve) => {
 				try {
 					const tokenId = await getOwnerMusicNFT(contract, address, i);
-					const uri = await getMusicNFT(contract, tokenId);
+					const uri = await getMusicNFTURI(contract, tokenId);
 					const metadata = await fetchMetaData(uri);
 					resolve({ ...metadata, owner: address });
+				} catch (error) {
+					resolve(null);
+				}
+            });
+
+            nfts.push(nft);
+        }
+
+		const results = await Promise.all(nfts);
+
+        return results;
+    }
+
+    const getMusicNFTs = useCallback(async () => {
+		const contract = await getContract();
+
+        const NFTLength = await totalMusicNFTs(contract, address);
+
+        const nfts = [];
+        for (let i = 0; i < NFTLength; i++) {
+            const nft = new Promise(async (resolve) => {
+				try {
+					const tokenId = await getMusicNFT(contract, i);
+					const uri = await getMusicNFTURI(contract, tokenId);
+                    const owner = await getMusicNFTOwner(contract, tokenId);
+					const metadata = await fetchMetaData(uri);
+					resolve({ ...metadata, owner});
 				} catch (error) {
 					resolve(null);
 				}
@@ -154,6 +186,8 @@ export function useMusicNFT() {
 
     return Object.freeze({
         mintMusicNFT,
-		getMusicNFTs
+		getMusicNFTs,
+        getOwnersMusicNFTs
+
     });
 }

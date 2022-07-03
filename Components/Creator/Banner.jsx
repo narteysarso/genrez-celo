@@ -1,11 +1,11 @@
 import { Row, Col, Card, Image, Button } from "react-bootstrap";
 import { DEFAULT_BANNER_IMAGE, DEFAULT_PROFILE_IMAGE } from "../../constants";
 
-import { useCreateSBT } from "../../hooks/CreatorSBT";
+import { useCreatorSBT } from "../../hooks/CreatorSBT";
 import { MintMusic } from "./NewMusic";
 
 export function Banner() {
-  const { creator } = useCreateSBT();
+  const { creator } = useCreatorSBT();
 
 
   if(!creator){

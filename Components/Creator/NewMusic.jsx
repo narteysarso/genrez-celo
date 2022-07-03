@@ -10,7 +10,7 @@ import {
   FormControl,
 } from "react-bootstrap";
 import { DEFAULT_MUSIC_COVER } from "../../constants";
-import { useCreateSBT } from "../../hooks/CreatorSBT";
+import { useCreatorSBT } from "../../hooks/CreatorSBT";
 import { useMusicNFT } from "../../hooks/MusicNFT";
 
 const today = new Date().toISOString().split('T')[0];
@@ -347,7 +347,7 @@ function MintMusciModal({ show, setShowModal, artistName }) {
 }
 
 export function MintMusic() {
-  const { creator } = useCreateSBT();
+  const { creator } = useCreatorSBT();
   const [showModal, setShowModal] = useState(false);
 
   if (!creator) {

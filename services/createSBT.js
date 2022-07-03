@@ -4,9 +4,22 @@
  * @param {string} address wallet address
  * @returns {string}
  */
-export const getProfileURI = async (contract, address) => {
+export const getOwnerProfileURI = async (contract, address) => {
 
     const profileURI = await contract.methods.profileURI(address).call();
+
+    return profileURI;
+}
+
+/**
+ * get profile nft metadata for address
+ * @param {object} contract smartcontract
+ * @param {string} address wallet address
+ * @returns {string}
+ */
+export const getProfileURI = async (contract, tokenId) => {
+
+    const profileURI = await contract.methods.tokenURI(tokenId).call();
 
     return profileURI;
 }
@@ -18,9 +31,9 @@ export const getProfileURI = async (contract, address) => {
  * @param {string} address wallet address
  * @param {string} uri metadata uri
  */
-export const updateProfileURI = async (contract, address, uri) => {
+export const updateProfileURI = async (contract, address, uri, artist) => {
 
-    await contract.methods.updateProfile(uri).send({from : address});
+    await contract.methods.updateProfile(uri, artist).send({from : address});
 }
 
 /**
@@ -39,8 +52,27 @@ export const burnProfile = async (contract, address) => {
  * @param {string} address wallet address 
  * @param {string} uri metadata uri
  */
-export const mintProfile = async (contract, address, uri) => {
+export const mintProfile = async (contract, address, uri, artist) => {
     
-    await contract.methods.mintProfile(uri).send({from : address});
+    await contract.methods.mintProfile(uri, artist).send({from : address});
 
+}
+
+/**
+ * get the total number of SBT profiles
+ * @param {object} contract  smart contract connection instance
+ * @returns {BigNumber}
+ */
+export const totalSupply = async (contract) => {
+    return await contract.methods.totalSupply().call();
+}
+
+/**
+ * 
+ * @param {object} contract  smart contract connection instance
+ * @param {Number} tokenId token ID
+ * @returns 
+ */
+export const ownerOfProfile = async (contract, tokenId) => {
+    return await contract.methods.ownerOf(tokenId).call();
 }

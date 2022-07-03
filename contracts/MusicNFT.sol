@@ -12,25 +12,43 @@ contract MusicNFT is ERC721Enumerable, ERC721URIStorage {
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIdCounter;
-    ICreatorSBT private CreatorSBT ;
+    ICreatorSBT private CreatorSBT;
+
+    event MusicMinted(
+        uint indexed _tokenId,
+        address indexed _owner,
+        string uri,
+        string title,
+        string artist,
+        string feature
+    );
+
+    event MusicBurnt(uint indexed _tokenId);
+
     constructor(address CreatorSBTAddress) ERC721("Genrez Music NFT", "zMT") {
         CreatorSBT = ICreatorSBT(CreatorSBTAddress);
     }
 
-    modifier onlyzSBTHolder {
+    // allow only zSBT holders
+    modifier onlyzSBTHolder() {
         require(CreatorSBT.balanceOf(msg.sender) == 1, "You need to mint zSBT");
         _;
     }
 
-
-    function mintMusic(string calldata uri) external onlyzSBTHolder {
-        
+    function mintMusic(
+        string calldata uri,
+        string memory _title,
+        string memory _artist,
+        string memory _feature
+    ) external onlyzSBTHolder {
         _tokenIdCounter.increment();
 
         uint tokenId = _tokenIdCounter.current();
 
         _safeMint(msg.sender, tokenId);
         _setTokenURI(tokenId, uri);
+
+        emit MusicMinted(tokenId, msg.sender, uri, _title, _artist, _feature);
     }
 
     ///@dev specify overrides for multi inheritted functions in ERC721Enumerable, ERC721URIStorage
@@ -56,6 +74,8 @@ contract MusicNFT is ERC721Enumerable, ERC721URIStorage {
         override(ERC721, ERC721URIStorage)
     {
         super._burn(tokenId);
+
+        emit MusicBurnt(tokenId);
     }
 
     function tokenURI(uint256 tokenId)

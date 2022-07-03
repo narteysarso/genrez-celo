@@ -12,14 +12,14 @@ import {
 import { useCelo } from "@celo/react-celo";
 import { useState } from "react";
 
-import { useCreateSBT } from "../hooks/CreatorSBT";
+import { useCreatorSBT } from "../hooks/CreatorSBT";
 import { toast } from "react-toastify";
 import { Banner } from "../Components/Creator/Banner";
 import { DEFAULT_PROFILE_IMAGE } from "../constants";
 import { MusicList } from "../Components/Creator/MusicList";
 
 function RegistrationModal({ show = false }) {
-  const { createProfile, creator, getProfile } = useCreateSBT();
+  const { createProfile, creator, getProfile, loadingProfile } = useCreatorSBT();
   const [profileImage, setProfileImage] = useState(
     creator?.image || DEFAULT_PROFILE_IMAGE
   );
@@ -84,12 +84,12 @@ function RegistrationModal({ show = false }) {
                 style={{ maxWidth: "120px" }}
               />
             </Form.Label>
-            <Form.Control disabled={loading} type="file" onChange={handleImageChange} />
+            <Form.Control disabled={loading || loadingProfile} type="file" accept=".jpeg,.jpg,.png" onChange={handleImageChange} />
           </Form.Group>
           <InputGroup className="mb-3">
             <InputGroup.Text id="basic-addon1">@</InputGroup.Text>
             <FormControl
-            disabled={loading}
+            disabled={loading || loadingProfile}
               placeholder="Username"
               aria-label="Username"
               aria-describedby="basic-addon1"
@@ -101,7 +101,7 @@ function RegistrationModal({ show = false }) {
           <Form.Group className="mb-3" controlId="bio.textarea">
             <Form.Label>Bio</Form.Label>
             <Form.Control
-            disabled={loading}
+            disabled={loading || loadingProfile}
               as="textarea"
               rows={3}
               value={description}
@@ -111,14 +111,14 @@ function RegistrationModal({ show = false }) {
           <Form.Group>
             <Row className="justify-content-between">
               <Col className="auto flex-grow-1">
-                <Button disabled={loading} type="reset" variant="warning">
+                <Button disabled={loading || loadingProfile} type="reset" variant="warning">
                   Reset
                 </Button>
               </Col>
               <Col>
-                <Button type="submit" disabled={loading} variant="info">
+                <Button type="submit" disabled={loading || loadingProfile} variant="info">
                   {creator ? "Update" : "Mint"} Profile
-                  {loading && (
+                  {(loading || loadingProfile) && (
                     <div className="spinner-border text-light spinner-border-sm" role="status">
                       <span className="visually-hidden">Loading...</span>
                     </div>
@@ -134,8 +134,7 @@ function RegistrationModal({ show = false }) {
 }
 
 export default function Creator() {
-  const { address } = useCelo();
-  const { getProfile, creator } = useCreateSBT();
+  const {creator } = useCreatorSBT();
 
   if (!creator) {
     return <RegistrationModal show={true} />;
