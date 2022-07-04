@@ -8,7 +8,7 @@ dataSources:
     name: CreatorSBT
     network: celo-alfajores
     source:
-      address: "0x2dB895528dDD55211F9Ae88331BE941cf1095569"
+      address: "0x6Fa33f4415f42BE90255FF5Bc4F85e8fad96ddce"
       abi: CreatorSBT
       startBlock: 12265109
     mapping:
@@ -34,7 +34,7 @@ dataSources:
     name: MusicNFT
     network: celo-alfajores
     source:
-      address: "0x8b8773e26826Da2449FB6A70c764917c2482EEF6"
+      address: "0x45Faf19f61281E68e03c682a6d78e1CbE0bc38D5"
       abi: MusicNFT
       startBlock: 12265109
     mapping:

@@ -16,4 +16,3 @@ This is a celo blockchain based music sharing website that allows creator/artist
 ### TODO
 - playlist management
 - streaming api
-- 
