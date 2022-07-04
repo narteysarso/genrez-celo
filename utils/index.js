@@ -1,4 +1,5 @@
-import { IPFS_NODE } from "../constants";
+import axios from "axios";
+import { GENREZ_CELO_GRAPH, IPFS_NODE } from "../constants";
 
 //upload data to ipfs
 export const uploadToIpfs = async (file) => {
@@ -91,4 +92,22 @@ export const capitalize = (word ="") => {
     const wordArray =  word.split("")
 
     return `${wordArray[0].toUpperCase()}${wordArray.slice(1).join("")}`;
+}
+
+export async function subgraphQuery(query) {
+  try {
+    // Replace YOUR-SUBGRAPH-URL with the url of your subgraph
+    const SUBGRAPH_URL = GENREZ_CELO_GRAPH;
+    const response = await axios.post(SUBGRAPH_URL, {
+      query,
+    });
+    if (response.data.errors) {
+      console.error(response.data.errors);
+      throw new Error(`Error making subgraph query ${response.data.errors}`);
+    }
+    return response.data.data;
+  } catch (error) {
+    console.error(error);
+    throw new Error(`Could not query the subgraph ${error.message}`);
+  }
 }

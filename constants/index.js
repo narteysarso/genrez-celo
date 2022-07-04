@@ -3,3 +3,4 @@ export const DEFAULT_PROFILE_IMAGE = "https://zos.alipayobjects.com/rmsportal/OD
 export const DEFAULT_MUSIC_COVER = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6PaNhJa1dsE4gTe5CiADDqP5Q8MZwhZb9pA&usqp=CAU";
 export const IPFS_NODE="https://ipfs.infura.io/ipfs";
 export const GENREZ_CELO_GRAPH = "https://api.thegraph.com/subgraphs/name/narteysarso/genrez-celo";
+export const DECIMALS = 10**18;

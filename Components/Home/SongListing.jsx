@@ -5,7 +5,7 @@ import { useMusicNFT } from "../../hooks/MusicNFT";
 import { Empty } from "../Empty";
 import { MusicNFTCard } from "../MusicNFTCard";
 
-export function SongListings() {
+export function SongListings({queryList}) {
     const { getMusicNFTs } = useMusicNFT();
 
     //Holds all fetched music nfts
@@ -13,14 +13,18 @@ export function SongListings() {
 
     useEffect(() => {
         (async () => {
+            if(queryList && queryList.length){
+                setNFTCollection(queryList);
+                return;
+            }
             setNFTCollection(await getMusicNFTs());
         })();
-    }, [getMusicNFTs]);
+    }, [getMusicNFTs, queryList]);
 
     return (
         <Row className="mt-5 mb-5">
             <Col xs={12}>
-                <h3>Songs</h3>
+                <h4>Songs</h4>
             </Col>
             <Col xs={12}>
                 <Row className="g-3 align-items-stretch">

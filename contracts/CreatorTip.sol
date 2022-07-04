@@ -8,7 +8,6 @@ pragma solidity 0.8.4;
 contract CreatorTip is Ownable {
     address private _creatorSBTAddress;
     mapping(address => uint256) private tips;
-    mapping(address => mapping(address => uint)) private approvals;
 
     event CreatorTipped(
         address indexed _from,
@@ -21,6 +20,7 @@ contract CreatorTip is Ownable {
         address indexed _to,
         uint amount
     );
+    
     constructor(address creatorSBTAddress) {
         _creatorSBTAddress = creatorSBTAddress;
     }
@@ -60,6 +60,11 @@ contract CreatorTip is Ownable {
         require(sent, "Failed to withdraw");
 
         emit CreatorWithdraw(msg.sender, _to, amount);
+    }
+
+    //return balance of an address
+    function balanceOf(address _address) public view onlyzSBTHolder(_address) returns (uint){
+        return tips[_address];
     }
 
     receive() external payable {}

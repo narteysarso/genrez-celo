@@ -17,7 +17,7 @@ export function BeACreator() {
   if(creator){
     return (
       <Link href="/creator" style={{ padding: "0 5px" }}>
-      <Button active={router.pathname === "/creator"} variant="outline-light">Creator</Button>
+      <Button active={router.pathname === "/creator"} variant="outline-light">Profile</Button>
     </Link>
     );
   }

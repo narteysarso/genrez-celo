@@ -5,8 +5,8 @@ import { Navbar, Container, Nav, } from "react-bootstrap";
 import packageJSON from "../../package.json";
 import { BeACreator } from "./BeACreator";
 import { ConnectWalletButton } from "./ConnectWallet";
-import { GoPremiumButton } from "./GoPremium";
 import { Button } from "react-bootstrap";
+import { WithdrawTip } from "./WithdrawTip";
 
 export function MainNav({ appName = packageJSON?.name, address }) {
   const AppName = useMemo(() => {
@@ -24,8 +24,8 @@ export function MainNav({ appName = packageJSON?.name, address }) {
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="justify-content-end flex-grow-1">
-            <GoPremiumButton />
             <ConnectWalletButton />
+            <WithdrawTip />
             <BeACreator />
           </Nav>
         </Navbar.Collapse>

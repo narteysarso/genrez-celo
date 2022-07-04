@@ -10,13 +10,14 @@ import {
   Image,
 } from "react-bootstrap";
 import { useCelo } from "@celo/react-celo";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { useCreatorSBT } from "../hooks/CreatorSBT";
+import { useCreatorSBT } from "../../hooks/CreatorSBT";
 import { toast } from "react-toastify";
-import { Banner } from "../Components/Creator/Banner";
-import { DEFAULT_PROFILE_IMAGE } from "../constants";
-import { MusicList } from "../Components/Creator/MusicList";
+import { Banner } from "../../Components/Creator/Banner";
+import { DEFAULT_PROFILE_IMAGE } from "../../constants";
+import { MusicList } from "../../Components/Creator/MusicList";
+import { useMusicNFT } from "../../hooks/MusicNFT";
 
 function RegistrationModal({ show = false }) {
   const { createProfile, creator, getProfile, loadingProfile } = useCreatorSBT();
@@ -136,14 +137,28 @@ function RegistrationModal({ show = false }) {
 export default function Creator() {
   const {creator } = useCreatorSBT();
 
+   //Music nft contract hook
+   const { getOwnersMusicNFTs} = useMusicNFT();
+
+   //Holds all fetched music nfts
+   const [nftCollection, setNFTCollection] = useState([]);
+
+   useEffect(() => {
+    
+       (async () => {
+           setNFTCollection(await getOwnersMusicNFTs());
+       })();
+
+   }, [getOwnersMusicNFTs]);
+
   if (!creator) {
     return <RegistrationModal show={true} />;
   }
 
   return (
     <Container className="pb-5">
-      <Banner />
-      <MusicList />
+      <Banner creator={creator}/>
+      <MusicList musciCollection={nftCollection}/>
     </Container>
   );
 }

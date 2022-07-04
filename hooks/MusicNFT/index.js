@@ -6,7 +6,7 @@ import {
 import { useCelo } from "@celo/react-celo";
 
 import contractArtifat from "../../abis/MusicNFT.json";
-import { fetchMetaData, uploadToIpfs } from "../../utils";
+import { fetchMetaData, subgraphQuery, uploadToIpfs } from "../../utils";
 import {
     getMusicNFT,
     getMusicNFTOwner,
@@ -40,6 +40,8 @@ export function MusicNFTProvider({ children }) {
 //MusicNFT contract hook to interact with contract
 export function useMusicNFT() {
     const { getConnectedKit, address } = useCelo();
+    const [queryLoading, setQueryLoading] = useState(false);
+    const [musicQueryResults, setMusicQueryResults] = useState([]);
 
     const getContract = useCallback(async () => {
         const kit = await getConnectedKit();
@@ -131,19 +133,19 @@ export function useMusicNFT() {
         
     },[address,getContract])
 
-    const getOwnersMusicNFTs = async () => {
+    const getOwnersMusicNFTs = async (owner = address) => {
         const contract = await getContract();
 
-        const ownersNFTLength = await ownersTotalMusicNFT(contract, address);
+        const ownersNFTLength = await ownersTotalMusicNFT(contract, owner);
 
         const nfts = [];
         for (let i = 0; i < Number(ownersNFTLength); i++) {
             const nft = new Promise(async (resolve) => {
 				try {
-					const tokenId = await getOwnerMusicNFT(contract, address, i);
+					const tokenId = await getOwnerMusicNFT(contract, owner, i);
 					const uri = await getMusicNFTURI(contract, tokenId);
 					const metadata = await fetchMetaData(uri);
-					resolve({ ...metadata, owner: address });
+					resolve({ ...metadata, owner});
 				} catch (error) {
 					resolve(null);
 				}
@@ -184,10 +186,57 @@ export function useMusicNFT() {
         return results;
     },[getContract, address])
 
+    //query creators from narteysarso/genrez-celo graph
+    const searchMusic = async (searchKey) => {
+       
+        try{
+            setQueryLoading(true);
+             //if `searchkey` is not empty surround it with `''` to handle spaces
+            //if not ignore
+            searchKey = searchKey.length ? `'${searchKey}'`: searchKey;
+            //query data from the graph
+            const response = await subgraphQuery( `query{ 
+                musicSearch(text: "${searchKey}"){ 
+                    uri 
+                    title
+                    artist
+                    feature
+                    tokenId 
+                    owner } 
+            }`)
+           
+            const resultsLen = response?.musicSearch.length;
+            const music = [];
+            //fetach metadata for each of the returned results from graph query
+            for(let i = 0; i < resultsLen; i++){
+                const {owner, uri} = response?.musicSearch[i];
+                const musicCall = new Promise(async (resolve) => {
+                    const musicMetadata = await fetchMetaData(uri);
+                    resolve({
+                        ...musicMetadata,
+                        owner
+                    })
+    
+                });
+                music.push(musicCall);
+            } 
+            
+            setMusicQueryResults(await Promise.all(music));
+        }catch(error){
+            console.log(error);
+        }finally{
+            setQueryLoading(false);
+        }
+    }
+
+
     return Object.freeze({
         mintMusicNFT,
 		getMusicNFTs,
-        getOwnersMusicNFTs
+        getOwnersMusicNFTs,
+        searchMusic,
+        musicQueryResults,
+        queryLoading
 
     });
 }

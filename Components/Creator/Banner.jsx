@@ -1,12 +1,9 @@
-import { Row, Col, Card, Image, Button } from "react-bootstrap";
+import { Row, Col, Card, Image} from "react-bootstrap";
 import { DEFAULT_BANNER_IMAGE, DEFAULT_PROFILE_IMAGE } from "../../constants";
 
-import { useCreatorSBT } from "../../hooks/CreatorSBT";
 import { MintMusic } from "./NewMusic";
 
-export function Banner() {
-  const { creator } = useCreatorSBT();
-
+export function Banner({creator}) {
 
   if(!creator){
     return null;
@@ -19,7 +16,7 @@ export function Banner() {
           <Card.Img className="fluid" src={DEFAULT_BANNER_IMAGE} alt="Creator's cover" />
           <Card.ImgOverlay className="d-flex justify-content-start align-items-end pb-2">
             <div className="d-flex align-items-center">
-            <Image src={creator?.image || DEFAULT_PROFILE_IMAGE} alt="Creator's profile" style={{width: "120px"}} roundedCircle />
+            <Image src={creator?.image || DEFAULT_PROFILE_IMAGE} alt="Creator's profile" style={{width: "120px"}} roundedCircle={true} />
             <div className="d-flex flex-column ">
                 <h3>{creator?.name}</h3>
                 <p className="text-muted">{creator?.description}</p>

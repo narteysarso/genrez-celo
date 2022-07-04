@@ -10,8 +10,9 @@ import {
 import { CreatorsListing } from "../Components/Home/CreatorsListing";
 import { SongListings } from "../Components/Home/SongListing";
 import { useCreatorSBT } from "../hooks/CreatorSBT";
+import { useMusicNFT } from "../hooks/MusicNFT";
 
-function SearchBar({ handleSearch, searchLoading }) {
+function SearchBar({ handleSearch, searchLoading = true }) {
     const [searchWord, setSearchWord] = useState("");
 
     return (
@@ -30,9 +31,6 @@ function SearchBar({ handleSearch, searchLoading }) {
                         id="button-addon1"
                         disabled={searchLoading}
                         onClick={(event) => {
-                            if(!searchWord){
-                                return;
-                            }
                             handleSearch(searchWord);
                         }}
                     >
@@ -56,12 +54,22 @@ function SearchBar({ handleSearch, searchLoading }) {
 }
 
 export default function Home() {
-    const {searchCreators, searchLoading} = useCreatorSBT();
+    const {searchCreators, creatorsQueryResults, queryLoading: creatorsqueryloading} = useCreatorSBT();
+    const {searchMusic, musicQueryResults, queryLoading: musicqueryloading} = useMusicNFT();
+    
+    const handleSearch = (searchKey) => {
+        try {
+            searchCreators(searchKey);
+            searchMusic(searchKey);
+        } catch (error) {
+            console.log(error);
+        }
+    }
     return (
         <Container className="py-5">
-            <SearchBar handleSearch={searchCreators} searchLoading={searchLoading}/>
-            <SongListings />
-            <CreatorsListing />
+            <SearchBar handleSearch={handleSearch} searchLoading={creatorsqueryloading || musicqueryloading}/>
+            <SongListings queryList={musicQueryResults} />
+            <CreatorsListing key="creatorlist" queryList={creatorsQueryResults}/>
         </Container>
     );
 }

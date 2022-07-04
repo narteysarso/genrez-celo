@@ -5,16 +5,18 @@ import { useCreatorSBT } from "../../hooks/CreatorSBT";
 import { CreatorSBTCard } from "../CreatorSBTCard";
 import { Empty } from "../Empty";
 
-import { MusicNFTCard } from "../MusicNFTCard";
-
-export function CreatorsListing(){
+export function CreatorsListing({queryList}){
     const {getProfiles} = useCreatorSBT();
-
     //Holds all fetched music nfts
     const [creatorsCollection, setNFTCollection] = useState([]);
 
     useEffect(() => {
         (async () => {
+            if(queryList && queryList.length){
+                setNFTCollection(queryList);
+                return;
+            }
+            
             const creators = await getProfiles();
             if(!creators){
                 setNFTCollection([]);
@@ -23,12 +25,12 @@ export function CreatorsListing(){
             setNFTCollection(creators);
             
         })();
-    }, [getProfiles]);
+    }, [getProfiles, queryList]);
 
     return (
         <Row className="mt-5 mb-5">
             <Col xs={12}>
-                <h3>Creators</h3>
+                <h4>Creators</h4>
             </Col>
             <Col xs={12}>
                 <Row className="g-3 align-items-stretch">

@@ -17,8 +17,13 @@ import {
     totalSupply,
     ownerOfProfile,
 } from "../../services/createSBT";
-import { fetchMetaData, makeCreator, uploadToIpfs } from "../../utils";
-import { DEFAULT_PROFILE_IMAGE, GENREZ_CELO_GRAPH } from "../../constants";
+import {
+    fetchMetaData,
+    makeCreator,
+    subgraphQuery,
+    uploadToIpfs,
+} from "../../utils";
+import { DEFAULT_PROFILE_IMAGE } from "../../constants";
 
 const CreatorSBTContext = createContext();
 
@@ -43,41 +48,59 @@ export function useCreatorSBT() {
     const { getConnectedKit, address } = useCelo();
     const { creator, setCreator } = useContext(CreatorSBTContext);
     const [loadingProfile, setLoadingProfile] = useState(false);
-    const [queryResults, setQueryResults] = useState([]);
+    const [creatorsQueryResults, setCreatorsQueryResults] = useState([]);
     const [queryLoading, setQueryLoading] = useState(false);
 
     //get contract instance for CreatorSBT contract
-    const getContract = useCallback(async (abi, address) => {
-        const kit = await getConnectedKit();
+    const getContract = useCallback(
+        async (abi, address) => {
+            const kit = await getConnectedKit();
 
-        const contract = new kit.connection.web3.eth.Contract(
-            contractArtifact.abi,
-            contractArtifact.address
-        );
+            const contract = new kit.connection.web3.eth.Contract(
+                contractArtifact.abi,
+                contractArtifact.address
+            );
 
-        return contract;
-    },[getConnectedKit]);
+            return contract;
+        },
+        [getConnectedKit]
+    );
 
     //get profile nft metadata for address
     const getOwnerProfile = async (address) => {
         const contract = await getContract();
-        try{
+        try {
             setLoadingProfile(true);
             const profileURI = await getOwnerProfileURI(contract, address);
-    
+
             if (!profileURI) {
                 setCreator(null);
                 return;
             }
-    
+
             const profileMetadata = await fetchMetaData(profileURI);
-    
+
             setCreator(profileMetadata);
-        }catch(error){
+        } catch (error) {
             console.log(error);
-        }finally{
+        } finally {
             setLoadingProfile(false);
         }
+    };
+
+    //get profile nft metadata for address
+    const getProfile = async (address) => {
+        const contract = await getContract();
+
+        const profileURI = await getOwnerProfileURI(contract, address);
+
+        if (!profileURI) {
+            return null;
+        }
+
+        const profileMetadata = await fetchMetaData(profileURI);
+
+        return profileMetadata;
     };
 
     //get profile nft metadata for token
@@ -88,31 +111,28 @@ export function useCreatorSBT() {
 
         const numberOfProfiles = await totalSupply(contract);
 
-        for(let tokenId = 1; tokenId <= Number(numberOfProfiles); tokenId++){
-
+        for (let tokenId = 1; tokenId <= Number(numberOfProfiles); tokenId++) {
             const artistCall = new Promise(async (resolve) => {
-                
                 const profileURI = await getProfileURI(contract, tokenId);
                 const owner = await ownerOfProfile(contract, tokenId);
                 const profileMetadata = await fetchMetaData(profileURI);
 
                 resolve({
                     ...profileMetadata,
-                    owner
-                })
-
+                    owner,
+                });
             });
             artists.push(artistCall);
         }
 
         return await Promise.all(artists);
-    },[getContract]);
+    }, [getContract]);
 
     //load profile of address
     useEffect(() => {
-      if(!address){
-        return ;
-      }
+        if (!address) {
+            return;
+        }
         getOwnerProfile(address);
     }, [address]);
 
@@ -173,54 +193,48 @@ export function useCreatorSBT() {
 
     //query creators from narteysarso/genrez-celo graph
     const searchCreators = async (searchKey) => {
-        try{
+        try {
             setQueryLoading(true);
-            //query data from the graph
-            const response = await fetch(GENREZ_CELO_GRAPH, {
-                method: "POST",
-                body: `
-                query{
-                        creatorSearch(text:"${searchKey}"){
-                            uri
-                            name
-                            tokenId
-                            owner
-                          }
-                    }
-                `
-            } );
-            const result = await response.json();
-            
-            if(results.data.errors){
-                throw new Error(results.data.errors);
-            }
+            //if `searchkey` is not empty surround it with `''` to handle spaces
+            //if not ignore
+            searchKey = searchKey.length ? `'${searchKey}'` : searchKey;
 
-            const data = results.data;
-            const resultsLen = data.creatorSearch.length;
+            //query data from the graph
+            const response = await subgraphQuery(`query{ 
+                creatorSearch(text: "${searchKey}"){ 
+                    uri 
+                    name 
+                    tokenId 
+                    owner } 
+            }`);
+
+            const resultsLen = response?.creatorSearch.length;
             const artists = [];
             //fetach metadata for each of the returned results from graph query
-            for(let i = 0; i < resultsLen; i++){
-                const {owner, uri} = data.creatorSearch[i];
+            for (let i = 0; i < resultsLen; i++) {
+                const { owner, uri } = response?.creatorSearch[i];
                 const artistCall = new Promise(async (resolve) => {
                     const profileMetadata = await fetchMetaData(uri);
                     resolve({
                         ...profileMetadata,
-                        owner
-                    })
-    
+                        owner,
+                    });
                 });
                 artists.push(artistCall);
-            } 
-            setQueryResults(artists);
-        }catch(error){
+            }
+
+            setCreatorsQueryResults(await Promise.all(artists));
+        } catch (error) {
             console.log(error);
-        }finally{
+        } finally {
             setQueryLoading(false);
         }
-    }
+    };
+
     return Object.freeze({
         getOwnerProfile,
         getProfiles,
+        getProfile,
         removeProfile,
         createProfile,
         updateProfile,
@@ -228,6 +242,6 @@ export function useCreatorSBT() {
         creator,
         loadingProfile,
         queryLoading,
-        queryResults
+        creatorsQueryResults,
     });
 }

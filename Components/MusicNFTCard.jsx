@@ -1,28 +1,32 @@
 import { useMemo } from "react";
-import { Button, Card, Stack } from "react-bootstrap";
+import { Button, Card, Modal, Stack } from "react-bootstrap";
+import { useCreatorTip } from "../hooks/CreatorTip";
 import { usePlayer } from "../hooks/Player";
 import { capitalize, makeMusic } from "../utils";
 
 /**
  * Generates MusicNFT Card from nft metadata
- * @param {Object} musicMetadata MusicNFT metadata 
- * @returns 
+ * @param {Object} musicMetadata MusicNFT metadata
+ * @returns
  */
- export function MusicNFTCard({musicMetadata}) {
+export function MusicNFTCard({ musicMetadata }) {
+    const music = useMemo(() => makeMusic(musicMetadata), [musicMetadata]);
+    const {setShowModal, setTipAddress} = useCreatorTip();
 
-    const music = useMemo( () => makeMusic(musicMetadata), [musicMetadata]);
-
-    const { togglePlay, currentSong, paused } = usePlayer({ source: music});
+    const { togglePlay, currentSong, paused } = usePlayer({ source: music });
 
     const isCurrentSong = useMemo(() => {
-        return currentSong?.uri !== music?.uri || (currentSong?.uri === music?.uri && paused);
-    },[currentSong, music.uri , paused])
+        return (
+            currentSong?.uri !== music?.uri ||
+            (currentSong?.uri === music?.uri && paused)
+        );
+    }, [currentSong, music.uri, paused]);
 
-    if(!music){
+    if (!music) {
         return null;
     }
 
-    const {name, description, image, artist, feature, uri} = music;
+    const { name, description, image, artist, feature, uri, owner } = music;
 
     return (
         <Card className="bg-dark text-white">
@@ -33,7 +37,9 @@ import { capitalize, makeMusic } from "../utils";
             />
             <Card.ImgOverlay className="nft-card-overlay">
                 <Stack gap={1}>
-                    <span><b>Title: {capitalize(name)}</b></span>
+                    <span>
+                        <b>Title: {capitalize(name)}</b>
+                    </span>
                     <span>{description}</span>
                     <span>Artist: {artist}</span>
                     <span>Feature: {feature}</span>
@@ -45,14 +51,22 @@ import { capitalize, makeMusic } from "../utils";
                             active={!isCurrentSong}
                             onClick={togglePlay.bind(this)}
                         >
-                            { isCurrentSong ? (
+                            {isCurrentSong ? (
                                 <i className="bi bi-play-circle-fill"></i>
                             ) : (
                                 <i className="bi bi-pause-circle-fill"></i>
                             )}
                         </Button>
-                        <Button variant="success" block={false} title={`Tip ${artist} & ${feature}`}>
-                        <i className="bi bi-cash-coin"></i>
+                        <Button
+                            onClick={() => {
+                                setTipAddress(owner);
+                                setShowModal(true)
+                            }}
+                            variant="success"
+                            block={false}
+                            title={`Tip ${artist} & ${feature}`}
+                        >
+                            <i className="bi bi-cash-coin"></i>
                         </Button>
                     </Stack>
                 </Stack>
