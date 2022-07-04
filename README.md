@@ -6,12 +6,14 @@ This is a celo blockchain based music sharing website that allows creator/artist
 - Create creator profile by minting an SBT (zSBT)
 - upload music to geneate a music nft (zMT)
 - play and listen to music from ipfs
+- fully function music player with (play, pause, skip forward/back, seeker, and volume control);
+- display music nfts
+- search artist/content creators by name
+- search music by title, artists, feature
+- tipping creators/artists in celo
+- creator tippings withdrawal
 
 ### TODO
-- fully function music player with (skip forward/back, seeker);
-- refetch music nfts after each upload
-- search artist/content creators by name, genre
-- search music by title, genre, artists 
-- home page
-- tipping creators/artists in celo
-- ads and premuim package( adds will be removed)
+- playlist management
+- streaming api
+- 
