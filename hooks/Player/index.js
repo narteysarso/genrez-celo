@@ -4,19 +4,39 @@ export const PlayerContext = createContext();
 
 export function PlayerProvider({ children }) {
     //tracks playlist
-    const [musicList, setMusicList] = useState([]);
+    const [musicList, setMusiclist] = useState([]);
     //track current playing music
     const [currentSong, setCurrentSong] = useState(null);
     //track if the audio player is mute
     const [mute, setMute] = useState(false);
     //tracks audio player current time
     const [currentTime, setCurrentTime] = useState(0);
+    //tracks audio player current time
+    const [songDuration, setSongDuration] = useState(0);
     //tracks audio player volume level
     const [volume, setVolume] = useState(1);
     //tracks if the audio player is paused/playing
     const [paused, setPaused] = useState(true);
     //hooks into html audio player
     const playerRef = useRef();
+
+    var convertTime = function (time) {
+
+        if (isNaN(time) || time == "" || typeof time != 'number') return "00:00";
+
+        var hours   = parseInt( time / 3600 ) % 24,
+            minutes = parseInt( time / 60 ) % 60,
+            seconds = parseInt( time % 60);
+
+        if (hours > 0) {
+            var result = (hours < 10 ? "0" + hours : hours) + ":" + (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds  < 10 ? "0" + seconds : seconds); 
+        } else {
+            var result = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds  < 10 ? "0" + seconds : seconds);    
+        }
+
+        return result;
+
+    };
 
     //plays music.if `src` is a different music uri start the music else keep playing the `currentS
     const play = (music) => {
@@ -53,9 +73,6 @@ export function PlayerProvider({ children }) {
 
     //seek player time
     const seekTime = (value) => {
-        if (!isNaN(value)) {
-            return;
-        }
         playerRef.current.currentTime = value;
     };
 
@@ -68,22 +85,54 @@ export function PlayerProvider({ children }) {
             list = [list];
         }
 
-        setMusiclist(prev => [...list, ...prev]);
+        setMusiclist(prev => [...prev,...list]);
     };
 
     // move to the next music in `musicList` 
     const playnext = () => {
-        const indexOfCurrentSong = musicList.indexOf(currentSong);
+
+        const indexOfCurrentSong = musicList.findIndex((music, idx) => {
+            return music.uri === currentSong?.uri;
+        });
+
+        console.log(indexOfCurrentSong);
+
+        if(indexOfCurrentSong < 0){
+            play(musicList[0]);
+            return;
+        }
+
         if (
             indexOfCurrentSong >= 0 &&
             indexOfCurrentSong < musicList.length - 1
         ) {
-            play(musicList[indexOfCurrentSong + 1]);
+            const song = musicList[indexOfCurrentSong + 1];
+            
+            if(song){
+                play(song);
+            }
             return;
         }
+    };
+    // move to the prev music in `musicList` 
+    const playprev = () => {
+        const indexOfCurrentSong = musicList.findIndex((music, idx) => {
+           return music?.uri == currentSong?.uri
+        });
 
-        setCurrentSong(null);
-        setPaused(false);
+        console.log(indexOfCurrentSong);
+
+        if (
+            indexOfCurrentSong > 0 &&
+            indexOfCurrentSong <= musicList.length - 1
+        ) {
+            const song = musicList[indexOfCurrentSong - 1]
+            if(song){
+                play(song);
+            }
+
+            return;
+        }
     };
 
     useEffect(() => {
@@ -96,10 +145,17 @@ export function PlayerProvider({ children }) {
             setCurrentTime((prev) => player.currentTime);
         };
 
-        player.addEventListener("ended", eventHandler);
+        const loadedHandler = (event) => {
+            setSongDuration(player.duration);
+        }
 
+        player.addEventListener("ended", eventHandler);
+        player.addEventListener("timeupdate", timeHandler, false);
+        player.addEventListener("loadeddata", loadedHandler,false)
         return () => {
             player.removeEventListener("ended", eventHandler);
+            player.removeEventListener("timeupdate",timeHandler);
+            player.removeEventListener("loadeddata", loadedHandler);
         };
     }, []);
 
@@ -107,11 +163,15 @@ export function PlayerProvider({ children }) {
         <PlayerContext.Provider
             value={{
                 play,
+                playnext,
+                playprev,
                 pause,
                 toggleMute,
                 changeVolume,
                 seekTime,
                 addToPlaylist,
+                convertTime,
+                songDuration,
                 currentTime,
                 paused,
                 mute,
@@ -134,8 +194,12 @@ export function usePlayer({ source }) {
 
     //see {@ PlayerProvider}
     const {
+        addToPlaylist,
         currentSong,
         play,
+        playnext,
+        playprev,
+        convertTime,
         pause,
         mute,
         paused,
@@ -143,6 +207,7 @@ export function usePlayer({ source }) {
         currentTime,
         toggleMute,
         changeVolume,
+        songDuration,
         volume,
     } = playerContext;
 
@@ -164,11 +229,16 @@ export function usePlayer({ source }) {
 
     return {
         togglePlay,
+        playnext,
+        playprev,
+        convertTime,
         seekTime,
         changeVolume,
         toggleMute,
         currentTime,
         paused,
+        songDuration,
+        addToPlaylist,
         mute,
         volume,
         currentSong

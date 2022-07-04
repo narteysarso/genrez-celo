@@ -30,7 +30,13 @@ import { capitalize, makeCreator} from "../utils";
             <Card.Body className="mb-1">
                 <Stack gap={1}>
                     <span><b>{capitalize(name)}</b></span>
-                    <span className="text-muted">{description}</span>   
+                    {description && (
+                        <span title={description} className="text-muted">
+                            {description.length > 25
+                                ? `${description.slice(0, 25)}...`
+                                : description}
+                        </span>
+                    )} 
                 </Stack>
             </Card.Body>
             </Card.Link>

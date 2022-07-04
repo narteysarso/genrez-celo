@@ -16,3 +16,11 @@ body{
   background-color: #181818e6;
   opacity: 1;
 }
+.nft-card-overlay span {
+  font-size: 14px;
+}
+.nft-card-overlay .add-to-playlist{
+  position: absolute;
+  right: 2px;
+  top: 2px;
+}

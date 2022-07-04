@@ -11,9 +11,9 @@ import { capitalize, makeMusic } from "../utils";
  */
 export function MusicNFTCard({ musicMetadata }) {
     const music = useMemo(() => makeMusic(musicMetadata), [musicMetadata]);
-    const {setShowModal, setTipAddress} = useCreatorTip();
+    const { setShowModal, setTipAddress } = useCreatorTip();
 
-    const { togglePlay, currentSong, paused } = usePlayer({ source: music });
+    const { togglePlay, currentSong, paused, addToPlaylist } = usePlayer({ source: music });
 
     const isCurrentSong = useMemo(() => {
         return (
@@ -27,7 +27,7 @@ export function MusicNFTCard({ musicMetadata }) {
     }
 
     const { name, description, image, artist, feature, uri, owner } = music;
-
+    const title = capitalize(name);
     return (
         <Card className="bg-dark text-white">
             <Card.Img
@@ -36,15 +36,45 @@ export function MusicNFTCard({ musicMetadata }) {
                 className="fluid"
             />
             <Card.ImgOverlay className="nft-card-overlay">
+                <Button
+                    title="add to playlist"
+                    className="add-to-playlist"
+                    size="sm"
+                    block={false}
+                    variant="outline-light"
+                    active={!isCurrentSong}
+                    onClick={addToPlaylist.bind(this, music)}
+                >
+                    <i className="bi bi-music-note-list"></i>
+                </Button>
                 <Stack gap={1}>
-                    <span>
-                        <b>Title: {capitalize(name)}</b>
+                    <span title={title}>
+                        <b>
+                            Title:{" "}
+                            {name.length > 12
+                                ? `${title.slice(0, 12)}...`
+                                : title}
+                        </b>
                     </span>
-                    <span>{description}</span>
-                    <span>Artist: {artist}</span>
-                    <span>Feature: {feature}</span>
+                    {description && (
+                        <span title={description}>
+                            {description.length > 17
+                                ? description.slice(0, 17)
+                                : description}
+                        </span>
+                    )}
+                    <span title={artist}>Artist: {artist.slice(0, 8)}</span>
+                    {feature && (
+                        <span title={feature}>
+                            Feature:{" "}
+                            {feature.length > 9
+                                ? `${feature.slice(0, 8)}...`
+                                : feature}
+                        </span>
+                    )}
                     <Stack direction="horizontal" gap={5}>
                         <Button
+                            size="sm"
                             block={false}
                             title={uri}
                             variant="outline-light"
@@ -60,10 +90,11 @@ export function MusicNFTCard({ musicMetadata }) {
                         <Button
                             onClick={() => {
                                 setTipAddress(owner);
-                                setShowModal(true)
+                                setShowModal(true);
                             }}
                             variant="success"
                             block={false}
+                            size="sm"
                             title={`Tip ${artist} & ${feature}`}
                         >
                             <i className="bi bi-cash-coin"></i>
