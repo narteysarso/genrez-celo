@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
     Button,
     Col,
@@ -11,9 +11,36 @@ import { CreatorsListing } from "../Components/Home/CreatorsListing";
 import { SongListings } from "../Components/Home/SongListing";
 import { useCreatorSBT } from "../hooks/CreatorSBT";
 import { useMusicNFT } from "../hooks/MusicNFT";
+import debounce from "lodash.debounce";
+
+function useDebounce(callback, delay) {
+  const debouncedFn = useCallback(
+    debounce((...args) => callback(...args), delay),
+    [delay] // will recreate if delay changes
+  );
+  return debouncedFn;
+}
+
+function useDebounceAlt(callback, delay) {
+  const memoizedCallback = useCallback(callback, []);
+  const debouncedFn = useRef(debounce(memoizedCallback, delay));
+
+  useEffect(() => {
+    debouncedFn.current = debounce(memoizedCallback, delay);
+  }, [memoizedCallback, debouncedFn, delay]);
+
+  return debouncedFn.current;
+}
 
 function SearchBar({ handleSearch, searchLoading = true }) {
     const [searchWord, setSearchWord] = useState("");
+    
+    const debouncedSave = useDebounce((nextValue) => handleSearch(searchWord), 1000);
+
+    const handleChange = (value) => {
+      setSearchWord(value);
+      debouncedSave(value);
+    };
 
     return (
         <Row>
@@ -24,14 +51,14 @@ function SearchBar({ handleSearch, searchLoading = true }) {
                         aria-describedby="basic-addon1"
                         placeholder="Artists, albums, or songs"
                         value={searchWord}
-                        onChange={(event) => setSearchWord(event.target.value)}
+                        onChange={(event) => handleChange(event.target.value)}
                     />
                     <Button
                         variant="outline-secondary"
                         id="button-addon1"
                         disabled={searchLoading}
                         onClick={(event) => {
-                            handleSearch(searchWord);
+                            handleChange(searchWord);
                         }}
                     >
                         {searchLoading ? (
