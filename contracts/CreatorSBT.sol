@@ -1,5 +1,6 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT 
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
+
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -24,13 +25,17 @@ contract CreatorSBT is ERC721URIStorage, ERC721Burnable, Ownable {
 
     event ProfileUpdated(
         uint indexed _tokenId,
-        string uri,
-        string artist
+        string uri
     );
 
     event ProfileBurnt(
         uint indexed _tokenId
     );
+
+    modifier isValidUri(string memory _uri){
+        require(bytes(_uri).length > 0, "Invalid uri");
+        _;
+    }
 
     constructor() ERC721("Genrez Creator Soulbound Token", "zSBT") {}
 
@@ -38,13 +43,13 @@ contract CreatorSBT is ERC721URIStorage, ERC721Burnable, Ownable {
     function mintProfile(
         string memory _uri,
         string memory _artist
-    ) public {
+    ) external isValidUri(_uri) {
         require(msg.sender != address(0), "Invalid address");
-
+        require(bytes(_artist).length > 0, "Invalid artist");
         //prevent minting more than one membership nft
         require(
             balanceOf(msg.sender) == 0,
-            "Minting more than one is not allowed"
+            "Minting more than one profile is not allowed"
         );
 
         _tokenIdCounter.increment();
@@ -62,25 +67,26 @@ contract CreatorSBT is ERC721URIStorage, ERC721Burnable, Ownable {
     }
 
     //get profile uri for `address`
-    function profileURI(address _owner) external view returns (string memory) {
+    function profileURI(address _owner) external view  returns (string memory) {
+        require(_owner != address(0), "Invalid address");
         uint tokenId = _ownedToken[_owner];
 
         return tokenURI(tokenId);
     }
 
     //update token for msg.sender
-    function updateProfile(string memory _uri, string memory _artist) public {
+    function updateProfile(string memory _uri) public isValidUri(_uri) {
         uint _tokenId = _ownedToken[msg.sender];
         require(_exists(_tokenId), "You have no SBT minted");
 
         _setTokenURI(_tokenId, _uri);
-        emit ProfileUpdated(_tokenId, _uri, _artist);
+        emit ProfileUpdated(_tokenId, _uri);
     }
 
     //burn token of `msg.sender`
     function burnProfile() external {
         uint _tokenId = _ownedToken[msg.sender];
-
+        require(_exists(_tokenId), "You have no SBT minted");
         burn(_tokenId);
         emit ProfileBurnt(_tokenId);
     }
