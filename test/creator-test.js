@@ -6,6 +6,7 @@ describe("CreatorSBT", function(){
   let contract;
   let owner;
   let acc1;
+  const artist = "DJ Bieber";
 
   this.beforeEach( async function (){
     const sbtContract = await ethers.getContractFactory("CreatorSBT");
@@ -24,7 +25,7 @@ describe("CreatorSBT", function(){
     expect(await contract.balanceOf(acc1.address)).to.equal(0);
 
     const tokenURI = "https://ipfs.infura.io/ipfs/QmWhQ5dBu7yDibjfWFhrXRF7v3tpENQyn6P4b9fgvVAVkH";
-    const tx = await contract.connect(acc1).mintProfile(tokenURI);
+    const tx = await contract.connect(acc1).mintProfile(tokenURI, artist);
     await tx.wait();
 
     expect(await contract.balanceOf(acc1.address)).to.equal(1);
@@ -34,19 +35,19 @@ describe("CreatorSBT", function(){
     expect(await contract.balanceOf(acc1.address)).to.equal(0);
 
     const tokenURI = "https://ipfs.infura.io/ipfs/QmWhQ5dBu7yDibjfWFhrXRF7v3tpENQyn6P4b9fgvVAVkH";
-    const tx1 = await contract.connect(acc1).mintProfile(tokenURI);
+    const tx1 = await contract.connect(acc1).mintProfile(tokenURI, artist);
     await tx1.wait();
 
     expect(await contract.balanceOf(acc1.address)).to.equal(1);
 
-    await expect(contract.connect(acc1).mintProfile(tokenURI)).to.be.revertedWith("Minting more than one is not allowed");
+    await expect(contract.connect(acc1).mintProfile(tokenURI, artist)).to.be.revertedWith("Minting more than one is not allowed");
   });
 
   it("Should return the right token uri", async () => {
     await  expect(contract.profileURI(acc1.address)).to.be.revertedWith("ERC721URIStorage: URI query for nonexistent token");
 
     const tokenURI = "https://ipfs.infura.io/ipfs/QmWhQ5dBu7yDibjfWFhrXRF7v3tpENQyn6P4b9fgvVAVkH";
-    const tx = await contract.connect(acc1).mintProfile(tokenURI);
+    const tx = await contract.connect(acc1).mintProfile(tokenURI, artist);
     await tx.wait();
 
     expect(await contract.profileURI(acc1.address)).to.equal(tokenURI);
@@ -56,7 +57,7 @@ describe("CreatorSBT", function(){
     expect(await contract.balanceOf(acc1.address)).to.equal(0);
 
     const tokenURI = "https://ipfs.infura.io/ipfs/QmWhQ5dBu7yDibjfWFhrXRF7v3tpENQyn6P4b9fgvVAVkH";
-    const tx1 = await contract.connect(acc1).mintProfile(tokenURI);
+    const tx1 = await contract.connect(acc1).mintProfile(tokenURI, artist);
     await tx1.wait();
 
     expect(await contract.profileURI(acc1.address)).to.equal(tokenURI);
@@ -72,7 +73,7 @@ describe("CreatorSBT", function(){
     expect(await contract.balanceOf(acc1.address)).to.equal(0);
 
     const tokenURI = "https://ipfs.infura.io/ipfs/QmWhQ5dBu7yDibjfWFhrXRF7v3tpENQyn6P4b9fgvVAVkH";
-    const tx = await contract.connect(acc1).mintProfile(tokenURI);
+    const tx = await contract.connect(acc1).mintProfile(tokenURI, artist);
     await tx.wait();
 
     const removeTx = await contract.connect(acc1).burnProfile();

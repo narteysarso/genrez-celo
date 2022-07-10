@@ -13,6 +13,10 @@ contract MusicNFT is ERC721Enumerable, ERC721URIStorage {
 
     Counters.Counter private _tokenIdCounter;
     ICreatorSBT private CreatorSBT;
+    address private owner;
+
+    mapping(uint => string) private reasonForRemoval;
+    mapping(uint => bool) private removed;
 
     event MusicMinted(
         uint indexed _tokenId,
@@ -27,6 +31,7 @@ contract MusicNFT is ERC721Enumerable, ERC721URIStorage {
 
     constructor(address CreatorSBTAddress) ERC721("Genrez Music NFT", "zMT") {
         CreatorSBT = ICreatorSBT(CreatorSBTAddress);
+        owner = msg.sender;
     }
 
     // allow only zSBT holders
@@ -41,6 +46,7 @@ contract MusicNFT is ERC721Enumerable, ERC721URIStorage {
         string memory _artist,
         string memory _feature
     ) external onlyzSBTHolder {
+        require(bytes(uri).length > 0, "Invalid uri");
         _tokenIdCounter.increment();
 
         uint tokenId = _tokenIdCounter.current();
@@ -49,6 +55,18 @@ contract MusicNFT is ERC721Enumerable, ERC721URIStorage {
         _setTokenURI(tokenId, uri);
 
         emit MusicMinted(tokenId, msg.sender, uri, _title, _artist, _feature);
+    }
+
+
+    /// @dev allows the contract owner to remove explicit or malicious NFTs
+    /// @param _reason is the reason why a Music was removed
+    function removeMusic(uint tokenId, string memory _reason) external {
+        require(bytes(reasonForRemoval[tokenId]).length == 0 && !removed[tokenId], "Already deleted");
+        require(owner == msg.sender, "Only contract owner");
+        require(bytes(_reason).length > 0, "You have to provide a reason");
+        removed[tokenId] = true;
+        reasonForRemoval[tokenId] = _reason;
+        _burn(tokenId);
     }
 
     ///@dev specify overrides for multi inheritted functions in ERC721Enumerable, ERC721URIStorage

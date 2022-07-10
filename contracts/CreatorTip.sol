@@ -3,7 +3,7 @@
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ICreatorSBT.sol";
 
-pragma solidity 0.8.4;
+pragma solidity ^0.8.4;
 
 contract CreatorTip is Ownable {
     address private _creatorSBTAddress;
@@ -34,23 +34,28 @@ contract CreatorTip is Ownable {
         _;
     }
 
+    modifier isValidAddress(address user){
+        require(user != address(0), "Invalid creator");
+        _;
+    }
+
     // send funds to creator
     function tipCreator(address _creator)
         external
         payable
         onlyzSBTHolder(_creator)
+        isValidAddress(_creator)
     {
+        require(msg.sender != _creator, "You can't tip yourself");
         require(msg.value > 0, "Amount must be greater than 0");
-
         tips[_creator] += msg.value;
 
         emit CreatorTipped(msg.sender, _creator, msg.value);
     }
 
     // withdraw creators funds
-    function withdrawTip(address _to) external onlyzSBTHolder(msg.sender) {
+    function withdrawTip(address _to) external onlyzSBTHolder(msg.sender) isValidAddress(_to) {
         require(tips[msg.sender] > 0, "You dont have enough balance");
-
         uint amount = tips[msg.sender];
 
         tips[msg.sender] = 0;

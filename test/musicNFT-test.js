@@ -24,13 +24,13 @@ describe("MusicNFT", function(){
         expect(await musicContract.balanceOf(acc1.address)).to.equal(0);
         expect(await creatorSBTContract.balanceOf(acc1.address)).to.equal(0);
 
-        const tokenURI = "";
-        await creatorSBTContract.connect(acc1).mintProfile(tokenURI);
+        const tokenURI = "123456example";
+        await creatorSBTContract.connect(acc1).mintProfile(tokenURI, "artist");
 
         expect(await creatorSBTContract.balanceOf(acc1.address)).to.equal(1);
 
-        const musicTokenUri = "";
-        await musicContract.connect(acc1).mintMusic(musicTokenUri);
+        const musicTokenUri = "123456example";
+        await musicContract.connect(acc1).mintMusic(musicTokenUri, "title", "artist", "feature");
 
         expect(await musicContract.balanceOf(acc1.address)).to.equal(1);
     });
@@ -39,8 +39,8 @@ describe("MusicNFT", function(){
         expect(await musicContract.balanceOf(acc1.address)).to.equal(0);
         expect(await creatorSBTContract.balanceOf(acc1.address)).to.equal(0);
 
-        const musicTokenUri = "";
+        const musicTokenUri = "123456example";
         
-        await expect( musicContract.connect(acc1).mintMusic(musicTokenUri)).to.revertedWith("You need to mint zSBT");
+        await expect( musicContract.connect(acc1).mintMusic(musicTokenUri, "title", "artist", "feature")).to.revertedWith("You need to mint zSBT");
     })
 })
